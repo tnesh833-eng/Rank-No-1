@@ -1,0 +1,703 @@
+<!--
+  ANTIGRAVITY:FILE
+  name: header.html
+  role: Standalone navbar component for the "Rank Holder" dashboard
+  status: static/demo — no backend wiring yet
+  owner: Rank Holder project
+
+  ANTIGRAVITY:CONTEXT
+  This file is a self-contained header (markup + styles + JS) meant to be
+  dropped into the top of app.html. It renders three interactive panels:
+    1. Notifications dropdown (hiring updates + freelance gigs)
+    2. Settings -> Profile dropdown (photo/name/email/scores/actions)
+    3. Sign-in pill (static, not yet wired to auth)
+
+  ANTIGRAVITY:TODO (things an agent should do before this ships)
+    - [ ] Replace all placehold.co image URLs with real user photo / logo paths
+    - [ ] Replace hardcoded notification cards with data fetched from
+          GET /api/notifications (expects { hiring: [...], freelance: [...] })
+    - [ ] Replace hardcoded profile fields (#profileName, #profileEmail,
+          .profile-row values) with data from the logged-in user's session
+    - [ ] Wire #updateProfileBtn -> route /profile/update
+    - [ ] Wire #adminPanelBtn -> route /admin (only render this button if
+          current_user.is_admin is true — do not just hide it with CSS)
+    - [ ] Wire the "Sign In" pill -> existing Flask login/signup modal
+    - [ ] Move inline <script> logic into a separate header.js if this file
+          grows further, to keep markup and behavior separate
+
+  ANTIGRAVITY:SAFE-EDIT-ZONES
+  Section boundaries below are marked with ANTIGRAVITY:SECTION comments.
+  An agent editing this file should stay within the named section it's
+  asked to change and avoid touching unrelated sections/ids, since
+  settingsBtn/notifBtn/profilePanel/notifPanel ids are referenced by
+  both the CSS and the <script> block at the bottom.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Rank Holder — Header</title>
+<style>
+  /* ANTIGRAVITY:SECTION id="theme-tokens"
+     purpose: Single source of truth for colors used across the navbar,
+              both dropdown panels, and their buttons.
+     edit-rule: change values here, not inline in individual rules below,
+                so dark/light theme swap stays a one-place edit. */
+  :root{
+    --bg:#0b0e1a;
+    --panel:#141a2e;
+    --border:#242b45;
+    --text:#e9ecf5;
+    --muted:#9aa3bd;
+    --accent1:#7c5cff;
+    --accent2:#4f7dff;
+    --pill-bg:#1c2338;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    font-family:'Segoe UI', Arial, sans-serif;
+    color:var(--text);
+  }
+
+  /* ANTIGRAVITY:SECTION id="navbar-layout"
+     purpose: Top-level bar layout (logo left, action cluster right).
+     depends-on: theme-tokens */
+  .navbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:14px 28px;
+    background:var(--panel);
+    border-bottom:1px solid var(--border);
+    flex-wrap:wrap;
+  }
+
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .brand img{
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    object-fit:cover;
+  }
+  .brand-name{
+    font-family:'Georgia', serif;
+    font-size:22px;
+    font-weight:700;
+    color:#b9a6ff;
+    white-space:nowrap;
+  }
+
+  .nav-actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .icon-btn{
+    width:40px;
+    height:40px;
+    border-radius:50%;
+    background:var(--pill-bg);
+    border:1px solid var(--border);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--text);
+    cursor:pointer;
+    flex-shrink:0;
+  }
+
+  .pill-btn{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:8px 14px;
+    border-radius:20px;
+    background:var(--pill-bg);
+    border:1px solid var(--border);
+    color:var(--text);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+
+  .pill-btn.primary{
+    background:linear-gradient(135deg, var(--accent1), var(--accent2));
+    border:none;
+    color:#fff;
+  }
+
+  .signin{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:6px 14px 6px 6px;
+    border-radius:24px;
+    background:var(--pill-bg);
+    border:1px solid var(--border);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .signin img{
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    object-fit:cover;
+  }
+  .signin-text{
+    display:flex;
+    flex-direction:column;
+    line-height:1.15;
+  }
+  .signin-text .top{
+    font-size:14px;
+    font-weight:700;
+    color:var(--text);
+  }
+  .signin-text .sub{
+    font-size:12px;
+    color:var(--accent2);
+  }
+  .signin .caret{
+    color:var(--muted);
+    font-size:12px;
+    margin-left:2px;
+  }
+
+  /* Responsive: shrink gracefully instead of overlapping */
+  @media (max-width: 900px){
+    .navbar{padding:12px 16px;}
+    .brand-name{font-size:18px;}
+    .pill-btn span.label-full{display:none;}
+  }
+
+  /* ANTIGRAVITY:SECTION id="profile-panel-styles"
+     purpose: Dropdown opened by the ⚙️ Settings icon (#settingsBtn).
+     controlled-by: <script> block, listeners on #settingsBtn / #closeProfile
+     data-todo: .p-name / .p-email / .profile-row values are hardcoded —
+                populate from session user + score data instead. */
+  .settings-wrap{
+    position:relative;
+  }
+
+  .profile-panel{
+    display:none;
+    position:absolute;
+    top:52px;
+    right:0;
+    width:300px;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.5);
+    padding:20px;
+    z-index:50;
+  }
+  .profile-panel.open{
+    display:block;
+  }
+
+  .profile-panel .close-btn{
+    position:absolute;
+    top:10px;
+    right:12px;
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:16px;
+    cursor:pointer;
+  }
+
+  .profile-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:16px;
+  }
+  .profile-header img{
+    width:56px;
+    height:56px;
+    border-radius:50%;
+    object-fit:cover;
+    border:2px solid var(--accent1);
+  }
+  .profile-header .p-name{
+    font-size:16px;
+    font-weight:700;
+    color:var(--text);
+  }
+  .profile-header .p-email{
+    font-size:12px;
+    color:var(--muted);
+    margin-top:2px;
+  }
+
+  .profile-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 0;
+    border-top:1px solid var(--border);
+    font-size:14px;
+  }
+  .profile-row .row-label{
+    color:var(--muted);
+  }
+  .profile-row .row-value{
+    font-weight:700;
+    color:var(--text);
+  }
+
+  .profile-actions{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    margin-top:16px;
+  }
+  .profile-actions button{
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:var(--pill-bg);
+    color:var(--text);
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+    text-align:left;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .profile-actions button:hover{
+    border-color:var(--accent2);
+  }
+  .profile-actions .admin-btn{
+    background:linear-gradient(135deg, var(--accent1), var(--accent2));
+    border:none;
+    color:#fff;
+    justify-content:center;
+  }
+
+  /* ANTIGRAVITY:SECTION id="notification-panel-styles"
+     purpose: Dropdown opened by the 🔔 bell (#notifBtn), two tabs:
+              "hiring" (daily company updates) and "freelance" (gigs).
+     controlled-by: <script> block, listeners on #notifBtn / #closeNotif
+                    and .notif-tab-btn click handlers
+     data-todo: .notif-card entries in the HTML below are hardcoded demo
+                data — replace with a render loop over API results. */
+  .notif-wrap{
+    position:relative;
+  }
+
+  .notif-dot{
+    position:absolute;
+    top:2px;
+    right:2px;
+    width:9px;
+    height:9px;
+    border-radius:50%;
+    background:#ff5c5c;
+    border:2px solid var(--panel);
+  }
+
+  .notif-panel{
+    display:none;
+    position:absolute;
+    top:52px;
+    left:0;
+    width:380px;
+    max-height:460px;
+    overflow-y:auto;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:14px;
+    box-shadow:0 12px 32px rgba(0,0,0,0.5);
+    padding:16px;
+    z-index:50;
+  }
+  .notif-panel.open{
+    display:block;
+  }
+
+  .notif-panel-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:12px;
+  }
+  .notif-panel-header h3{
+    margin:0;
+    font-size:15px;
+  }
+  .notif-panel-header .close-btn{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:16px;
+    cursor:pointer;
+  }
+
+  .notif-tabs{
+    display:flex;
+    gap:6px;
+    margin-bottom:12px;
+  }
+  .notif-tab-btn{
+    flex:1;
+    padding:7px 8px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    background:var(--pill-bg);
+    color:var(--muted);
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .notif-tab-btn.active{
+    background:linear-gradient(135deg, var(--accent1), var(--accent2));
+    color:#fff;
+    border:none;
+  }
+
+  .notif-section{
+    display:none;
+    flex-direction:column;
+    gap:10px;
+  }
+  .notif-section.active{
+    display:flex;
+  }
+
+  .notif-card{
+    padding:12px;
+    border-radius:10px;
+    background:var(--pill-bg);
+    border:1px solid var(--border);
+  }
+  .notif-card .nc-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:4px;
+  }
+  .notif-card .nc-title{
+    font-size:13px;
+    font-weight:700;
+    color:var(--text);
+  }
+  .notif-card .nc-time{
+    font-size:11px;
+    color:var(--muted);
+  }
+  .notif-card .nc-desc{
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:8px;
+    line-height:1.4;
+  }
+  .notif-card .nc-tag{
+    display:inline-block;
+    font-size:10px;
+    font-weight:700;
+    padding:3px 8px;
+    border-radius:10px;
+    margin-bottom:8px;
+  }
+  .nc-tag.hiring{
+    background:rgba(79,220,140,0.15);
+    color:#4fdc8c;
+  }
+  .nc-tag.urgent{
+    background:rgba(255,150,60,0.15);
+    color:#ff963c;
+  }
+  .nc-tag.freelance{
+    background:rgba(124,92,255,0.15);
+    color:#b39dff;
+  }
+
+  .nc-links{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .nc-links a{
+    display:flex;
+    align-items:center;
+    gap:4px;
+    font-size:11px;
+    font-weight:700;
+    text-decoration:none;
+    padding:6px 10px;
+    border-radius:8px;
+    border:1px solid var(--border);
+    color:var(--text);
+  }
+  .nc-links a.mail-link{
+    background:rgba(255,255,255,0.04);
+  }
+  .nc-links a.li-link{
+    background:#0a66c2;
+    border:none;
+    color:#fff;
+  }
+</style>
+</head>
+<body>
+
+  <!-- ANTIGRAVITY:SECTION id="navbar-markup"
+       purpose: Root nav bar. Brand on the left, action cluster on the right.
+       agent-note: keep #notifBtn/#settingsBtn wrapper divs (.notif-wrap /
+       .settings-wrap) as `position:relative` anchors — the dropdowns below
+       are positioned absolute against them. -->
+  <div class="navbar">
+    <div class="brand">
+      <!-- ANTIGRAVITY:TODO replace with real logo asset path -->
+      <img src="https://placehold.co/44x44" alt="logo">
+      <div class="brand-name">Rank Holder</div>
+    </div>
+
+    <div class="nav-actions">
+      <!-- ANTIGRAVITY:SECTION id="notification-dropdown"
+           api-contract: GET /api/notifications ->
+             { "hiring": [{title, time, tag, desc, mail, linkedin}],
+               "freelance": [{title, time, tag, desc, mail, linkedin}] }
+           agent-note: replace the two hardcoded .notif-card lists below
+           with a render loop keyed off this response. Keep #tab-hiring
+           and #tab-freelance ids — the tab-switch JS targets them. -->
+      <div class="notif-wrap">
+        <button class="icon-btn" id="notifBtn" title="Notifications" style="position:relative;">
+          🔔
+          <span class="notif-dot"></span>
+        </button>
+
+        <div class="notif-panel" id="notifPanel">
+          <div class="notif-panel-header">
+            <h3>Notifications</h3>
+            <button class="close-btn" id="closeNotif">✕</button>
+          </div>
+
+          <div class="notif-tabs">
+            <button class="notif-tab-btn active" data-tab="hiring">🏢 Hiring Updates</button>
+            <button class="notif-tab-btn" data-tab="freelance">💼 Freelance Gigs</button>
+          </div>
+
+          <!-- Daily hiring / company update feed -->
+          <div class="notif-section active" id="tab-hiring">
+            <div class="notif-card">
+              <div class="nc-top">
+                <span class="nc-title">Google — Mass SWE Hiring</span>
+                <span class="nc-time">Today</span>
+              </div>
+              <span class="nc-tag hiring">Hiring Active</span>
+              <div class="nc-desc">New openings for SWE-1, Cloud, and University Internship roles posted this morning.</div>
+              <div class="nc-links">
+                <a class="mail-link" href="mailto:careers@google.com">✉️ Recruiter Email</a>
+                <a class="li-link" href="https://linkedin.com/company/google/jobs" target="_blank">in LinkedIn Jobs</a>
+              </div>
+            </div>
+
+            <div class="notif-card">
+              <div class="nc-top">
+                <span class="nc-title">TCS — NQT Approaching</span>
+                <span class="nc-time">Today</span>
+              </div>
+              <span class="nc-tag urgent">Deadline Soon</span>
+              <div class="nc-desc">National Qualifier Test registration closes in 3 days. Apply before slots fill.</div>
+              <div class="nc-links">
+                <a class="mail-link" href="mailto:hr@tcs.com">✉️ Recruiter Email</a>
+                <a class="li-link" href="https://linkedin.com/company/tata-consultancy-services/jobs" target="_blank">in LinkedIn Jobs</a>
+              </div>
+            </div>
+
+            <div class="notif-card">
+              <div class="nc-top">
+                <span class="nc-title">Zoho — Urgent Hiring</span>
+                <span class="nc-time">Yesterday</span>
+              </div>
+              <span class="nc-tag urgent">Urgent Hiring</span>
+              <div class="nc-desc">Zoho is fast-tracking interviews for Product Development and QA roles this week.</div>
+              <div class="nc-links">
+                <a class="mail-link" href="mailto:careers@zohocorp.com">✉️ Recruiter Email</a>
+                <a class="li-link" href="https://linkedin.com/company/zoho/jobs" target="_blank">in LinkedIn Jobs</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Freelance / direct-contact project feed -->
+          <div class="notif-section" id="tab-freelance">
+            <div class="notif-card">
+              <div class="nc-top">
+                <span class="nc-title">Startup needs React Landing Page</span>
+                <span class="nc-time">2h ago</span>
+              </div>
+              <span class="nc-tag freelance">Freelance</span>
+              <div class="nc-desc">Early-stage startup looking for a freelance dev to build a marketing landing page. Budget negotiable.</div>
+              <div class="nc-links">
+                <a class="mail-link" href="mailto:founder@examplestartup.com">✉️ Contact Founder</a>
+                <a class="li-link" href="https://linkedin.com" target="_blank">in LinkedIn Profile</a>
+              </div>
+            </div>
+
+            <div class="notif-card">
+              <div class="nc-top">
+                <span class="nc-title">Flask API Integration Gig</span>
+                <span class="nc-time">1d ago</span>
+              </div>
+              <span class="nc-tag freelance">Freelance</span>
+              <div class="nc-desc">Small business needs a Flask backend connected to a payment gateway. Short-term contract.</div>
+              <div class="nc-links">
+                <a class="mail-link" href="mailto:client@examplebiz.com">✉️ Contact Client</a>
+                <a class="li-link" href="https://linkedin.com" target="_blank">in LinkedIn Profile</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="pill-btn" title="Toggle theme">
+        ☀️ <span class="label-full">Light</span>
+      </button>
+
+      <!-- ANTIGRAVITY:SECTION id="profile-dropdown"
+           api-contract: GET /api/profile ->
+             { name, email, photo_url, is_admin,
+               overall_rank, direct_job_point, english_fluency, ai_bio_score }
+           agent-note: #adminPanelBtn should only render server-side if
+           is_admin is true — don't gate admin access with CSS/JS alone. -->
+      <div class="settings-wrap">
+        <button class="icon-btn" id="settingsBtn" title="Settings">⚙️</button>
+
+        <div class="profile-panel" id="profilePanel">
+          <button class="close-btn" id="closeProfile">✕</button>
+
+          <div class="profile-header">
+            <img src="https://placehold.co/56x56" alt="profile photo" id="profilePhoto">
+            <div>
+              <div class="p-name" id="profileName">Tharunesh S</div>
+              <div class="p-email" id="profileEmail">black@example.com</div>
+            </div>
+          </div>
+
+          <div class="profile-row">
+            <span class="row-label">Overall Rank</span>
+            <span class="row-value">Top 15%</span>
+          </div>
+          <div class="profile-row">
+            <span class="row-label">Direct Job Point</span>
+            <span class="row-value">85%</span>
+          </div>
+          <div class="profile-row">
+            <span class="row-label">English Fluency</span>
+            <span class="row-value">72%</span>
+          </div>
+          <div class="profile-row">
+            <span class="row-label">AI Bio Score</span>
+            <span class="row-value">40%</span>
+          </div>
+
+          <div class="profile-actions">
+            <button id="updateProfileBtn">✏️ Update Profile</button>
+            <button id="adminPanelBtn" class="admin-btn">🛡️ Admin Panel</button>
+          </div>
+        </div>
+      </div>
+
+      <button class="pill-btn primary" title="Tools Hub">
+        🌐 <span class="label-full">Tools Hub</span>
+      </button>
+
+      <div class="signin">
+        <img src="https://placehold.co/34x34" alt="avatar">
+        <div class="signin-text">
+          <span class="top">Sign In</span>
+          <span class="sub">My Account</span>
+        </div>
+        <span class="caret">▾</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ANTIGRAVITY:SECTION id="interaction-script"
+       purpose: Panel open/close + mutual-exclusion logic for the profile
+       and notification dropdowns, plus notif tab switching.
+       agent-note: if this file is split later, this whole <script> block
+       is the natural boundary for header.js — it has no dependency on
+       anything outside this file. -->
+  <script>
+    const settingsBtn = document.getElementById('settingsBtn');
+    const profilePanel = document.getElementById('profilePanel');
+    const closeProfile = document.getElementById('closeProfile');
+
+    settingsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      profilePanel.classList.toggle('open');
+      document.getElementById('notifPanel').classList.remove('open');
+    });
+
+    closeProfile.addEventListener('click', () => {
+      profilePanel.classList.remove('open');
+    });
+
+    // close when clicking outside the panel
+    document.addEventListener('click', (e) => {
+      if (!profilePanel.contains(e.target) && e.target !== settingsBtn){
+        profilePanel.classList.remove('open');
+      }
+    });
+
+    // ANTIGRAVITY:TODO replace alert() calls with real navigation once
+    // Flask routes exist: window.location.href = '/profile/update' and
+    // window.location.href = '/admin' respectively.
+    document.getElementById('updateProfileBtn').addEventListener('click', () => {
+      alert('Open update-profile form / route here.');
+    });
+    document.getElementById('adminPanelBtn').addEventListener('click', () => {
+      alert('Navigate to admin panel route here.');
+    });
+
+    // ---------- Notifications panel ----------
+    const notifBtn = document.getElementById('notifBtn');
+    const notifPanel = document.getElementById('notifPanel');
+    const closeNotif = document.getElementById('closeNotif');
+    const notifTabBtns = document.querySelectorAll('.notif-tab-btn');
+    const notifSections = document.querySelectorAll('.notif-section');
+
+    notifBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notifPanel.classList.toggle('open');
+      profilePanel.classList.remove('open'); // don't show both panels at once
+    });
+
+    closeNotif.addEventListener('click', () => {
+      notifPanel.classList.remove('open');
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!notifPanel.contains(e.target) && e.target !== notifBtn){
+        notifPanel.classList.remove('open');
+      }
+    });
+
+    notifTabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        notifTabBtns.forEach(b => b.classList.remove('active'));
+        notifSections.forEach(s => s.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>

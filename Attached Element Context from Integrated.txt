@@ -1,0 +1,98 @@
+Attached Element Context from Integrated Browser
+
+Element: button#authUserDisplay
+
+URL: http://localhost:5000/app.html
+
+HTML Path: header#main-navbar > div > div#authUserDisplayWrap.notif-wrap > button#authUserDisplay
+
+Outer HTML:
+```html
+<button id="authUserDisplay" onclick="toggleProfilePanel()" style="display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; background: var(--pill-bg, #1c2338); border-color: rgba(99, 102, 241, 0.5); border-top-style: ; border-top-width: ; border-right-style: ; border-right-width: ; border-bottom-style: ; border-bottom-width: ; border-left-style: ; border-left-width: ; border-image-source: ; border-image-slice: ; border-image-width: ; border-image-outset: ; border-image-repeat: ; border-radius: 24px; cursor: pointer; transition: 0.25s;" onmouseover="this.style.borderColor='rgba(99,102,241,0.5)'" onmouseout="this.style.borderColor='rgba(99,102,241,0.2)'">
+                    <!-- Avatar -->
+                    <img id="navProfilePhoto" src="3d_avatar.jpg" alt="Profile" style="width:34px;height:34px;border-radius:50%;object-fit:cover;display:block;">
+                    <!-- Name + label -->
+                    <div style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;">
+                        <span id="navProfileName" style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">Sign In</span>
+                        <span style="font-size:0.65rem;color:var(--accent2, #4f7dff);">My Account</span>
+                    </div>
+                    <!-- Chevron -->
+                    <span style="color:var(--text-muted); font-size:0.75rem; margin-left:2px;">▾</span>
+                </button>
+```
+
+Dimensions:
+- top: -3px
+- left: 347px
+- width: 126px
+- height: 69px
+
+CSS:
+```css
+element { display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; background: var(--pill-bg, #1c2338); border-color: rgba(99, 102, 241, 0.5); border-top-style: ; border-top-width: ; border-right-style: ; border-right-width: ; border-bottom-style: ; border-bottom-width: ; border-left-style: ; border-left-width: ; border-image-source: ; border-image-slice: ; border-image-width: ; border-image-outset: ; border-image-repeat: ; border-radius: 24px; cursor: pointer; transition: 0.25s; }
+*, *::before, *::after { margin: 0;
+    padding: 0;
+    box-sizing: border-box; }
+
+/* Pseudo-elements */
+::selection { background: rgba(99, 102, 241, 0.35);
+    color: var(--text-primary); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-thumb { background: var(--brand-primary); border-radius: 6px; opacity: 0.6; }
+::-webkit-scrollbar-thumb:hover { background: var(--brand-secondary); }
+::-webkit-scrollbar-track { background: transparent; }
+
+/* Inherited */
+body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: var(--text-primary); line-height: 1.6 }
+body { font-family: 'Outfit', 'Segoe UI', sans-serif }
+
+/* Resolved values */
+margin: 0px;
+padding: 6px 14px 6px 6px;
+border-radius: 24px;
+border: 0.8px /*UA*/ solid /*UA*/ rgba(99, 102, 241, 0.29);
+transition: 0.25s;
+align-items: center;
+appearance: auto /*UA*/;
+background-attachment: scroll;
+background-clip: border-box;
+background-color: rgb(28, 35, 56);
+background-image: none;
+background-origin: padding-box;
+background-position-x: 0%;
+background-position-y: 0%;
+background-repeat: repeat;
+background-size: auto;
+border-image-outset: 0 /*UA*/;
+border-image-repeat: stretch /*UA*/;
+border-image-slice: 100% /*UA*/;
+border-image-source: none /*UA*/;
+border-image-width: 1 /*UA*/;
+box-sizing: border-box;
+color: rgb(0, 0, 0);
+column-gap: 10px;
+cursor: pointer;
+display: flex;
+font-family: Arial;
+height: 68.775px;
+letter-spacing: normal /*UA*/;
+line-height: normal;
+opacity: 1;
+padding-block-end: 6px /*UA*/;
+padding-block-start: 6px /*UA*/;
+padding-inline-end: 14px /*UA*/;
+padding-inline-start: 6px /*UA*/;
+row-gap: 10px;
+text-align: center /*UA*/;
+text-indent: 0px /*UA*/;
+text-rendering: auto /*UA*/;
+text-shadow: none /*UA*/;
+text-transform: none /*UA*/;
+width: 125.575px;
+word-spacing: 0px /*UA*/;
+
+/* CSS variables */
+--brand-secondary: #6ea8fe;
+--text-primary: #eefbf9;
+--brand-primary: #55d6c2;
+```

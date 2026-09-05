@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ℜ𝔞𝔫𝔨 ℌ𝔬𝔩𝔡𝔢𝔯 — Customer Login</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .auth-container {
+            max-width: 420px;
+            margin: 90px auto 60px;
+            padding: 40px 30px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .auth-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            border: 2px solid var(--brand-primary);
+        }
+        .auth-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+        .auth-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+        .auth-form {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .auth-form label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+        .auth-footer {
+            margin-top: 24px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .auth-footer a {
+            color: var(--brand-primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .error-msg {
+            color: #ef4444;
+            font-size: 0.85rem;
+            margin-top: -8px;
+            text-align: left;
+        }
+        .otp-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .otp-input {
+            width: 45px;
+            height: 50px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            background: var(--bg-body);
+            color: var(--text-primary);
+        }
+        .otp-input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+    </style>
+</head>
+<body class="dark-theme">
+<header id="main-navbar" style="
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; height: 64px;
+    background: rgba(5,8,26,0.82);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid rgba(99,102,241,0.22);
+    box-shadow: 0 4px 32px rgba(0,0,0,0.35);
+    transition: background 0.3s;
+">
+    <!-- ── LOGO ── -->
+    <a href="#" class="logo" aria-label="Rank Holder Home" style="
+        display:flex; align-items:center; gap:12px; text-decoration:none; flex-shrink:0;
+    ">
+        <img src="3d_avatar.jpg" alt="Logo Avatar" class="logo-3d-avatar" style="
+            width:38px; height:38px; border-radius:50%;
+            border:2px solid var(--brand-primary);
+            object-fit:cover; box-shadow:0 0 14px rgba(99,102,241,0.5);
+        ">
+        <span style="
+            font-family:'Outfit',sans-serif; font-weight:900; font-size:1.15rem;
+            background:linear-gradient(135deg,#a5b4fc,#818cf8);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            white-space:nowrap;
+        ">ℜ𝔞𝔫𝔨 ℌ𝔬𝔩𝔡𝔢𝔯</span>
+    </a>
+
+    <!-- ── RIGHT ACTIONS ── -->
+    <div style="display:flex; align-items:center; gap:10px;">
+
+        <!-- 🔔 NOTIFICATIONS BELL -->
+        <div class="notif-wrap" style="position:relative;">
+            <button class="icon-btn" id="notifBtn" onclick="toggleNotifPanel()"
+                aria-label="Job & Internship Notifications"
+                style="position:relative; width:40px; height:40px; border-radius:50%;
+                background:rgba(255,255,255,0.35); border:1px solid rgba(99,102,241,0.25);
+                display:flex; align-items:center; justify-content:center; cursor:pointer;
+                transition:all 0.2s; color:#4f46e5;"
+                onmouseover="this.style.borderColor='rgba(99,102,241,0.5)';this.style.background='rgba(255,255,255,0.55)'"
+                onmouseout="this.style.borderColor='rgba(99,102,241,0.25)';this.style.background='rgba(255,255,255,0.35)'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <span class="notif-badge" id="notifBadge" style="display:none; position:absolute; top:-2px; right:-2px;
+                    width:10px; height:10px; background:#ff5c5c; border-radius:50%; font-size:0;
+                    border:2px solid var(--bg-primary);"></span>
+            </button>
+            <div class="notif-panel" id="notifPanel" style="width:340px; padding:0; overflow:hidden; top:52px; display:none; position:absolute; right:0; background:var(--bg-surface, #0d1130); border:1px solid rgba(99,102,241,0.3); border-radius:14px; box-shadow:0 12px 32px rgba(0,0,0,0.5); z-index:50;">
+                <div class="notif-panel-header" style="padding:14px 16px 10px; border-bottom:1px solid rgba(99,102,241,0.15);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-weight:800;font-size:0.95rem;">🔔 Career Alerts</span>
+                        <button class="chip" style="margin:0; cursor:pointer; font-size:0.72rem; padding:3px 10px;" onclick="clearNotifications()">Clear all</button>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <button id="notifFilterAll" onclick="filterNotifs('all')" style="flex:1;padding:5px;border-radius:7px;font-size:0.72rem;font-weight:700;cursor:pointer;background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.3);color:var(--brand-primary);transition:all 0.2s;">All</button>
+                        <button id="notifFilterJob" onclick="filterNotifs('job')" style="flex:1;padding:5px;border-radius:7px;font-size:0.72rem;font-weight:700;cursor:pointer;background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.1);color:var(--text-muted);transition:all 0.2s;">💼 Jobs</button>
+                        <button id="notifFilterIntern" onclick="filterNotifs('internship')" style="flex:1;padding:5px;border-radius:7px;font-size:0.72rem;font-weight:700;cursor:pointer;background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.1);color:var(--text-muted);transition:all 0.2s;">🎓 Internship</button>
+                    </div>
+                </div>
+                <div id="notifList" style="max-height:360px;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+        </div>
+
+        <!-- 🌓 THEME TOGGLE -->
+        <button class="pill-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle Theme"
+            style="height:40px; padding:0 14px; border-radius:20px; border:1px solid rgba(99,102,241,0.25);
+            background:rgba(255,255,255,0.35); font-size:0.85rem; font-weight:600;
+            display:flex; align-items:center; gap:6px; cursor:pointer; transition:all 0.2s; color:#4f46e5;"
+            onmouseover="this.style.borderColor='rgba(99,102,241,0.5)';this.style.background='rgba(255,255,255,0.55)'"
+            onmouseout="this.style.borderColor='rgba(99,102,241,0.25)';this.style.background='rgba(255,255,255,0.35)'">
+            <span id="themeIcon">☀️</span><span id="themeLabel">Light</span>
+        </button>
+
+        <!-- 🛡️ ADMIN PANEL BUTTON (Safety & Security: tnesh833@gmail.com strictly) -->
+        <button class="pill-btn" id="adminNavBtn" onclick="openAdminPanelSecure()" aria-label="Admin Panel"
+            style="height:40px; padding:0 16px; border-radius:20px; border:1px solid rgba(99,102,241,0.4);
+            background:linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2)); font-size:0.85rem; font-weight:700;
+            display:flex; align-items:center; gap:6px; cursor:pointer; transition:all 0.2s; color:var(--text-primary, #fff);"
+            onmouseover="this.style.borderColor='rgba(99,102,241,0.7)';this.style.boxShadow='0 0 16px rgba(99,102,241,0.4)'"
+            onmouseout="this.style.borderColor='rgba(99,102,241,0.4)';this.style.boxShadow='none'">
+            <span>🛡️</span> <span>Admin Panel</span>
+        </button>
+
+        <!-- 🌐 TOOLS HUB -->
+        <button class="pill-btn primary" onclick="openQuickAccess()"
+            style="height:40px; padding:0 18px; border-radius:20px;
+            background:linear-gradient(135deg, #7c5cff, #4f7dff);
+            color:#fff; font-weight:700; border:none; font-size:0.85rem;
+            box-shadow:0 4px 18px rgba(99,102,241,0.4); transition:all 0.25s; white-space:nowrap; cursor:pointer;"
+            onmouseover="this.style.boxShadow='0 6px 24px rgba(99,102,241,0.6)';this.style.transform='translateY(-1px)'"
+            onmouseout="this.style.boxShadow='0 4px 18px rgba(99,102,241,0.4)';this.style.transform='translateY(0)'">
+            🌐 Tools Hub
+        </button>
+
+        <!-- 👤 USER PROFILE DROPDOWN -->
+        <div id="authUserDisplayWrap" class="notif-wrap" style="display:block; position:relative;">
+            <button id="authUserDisplay" onclick="toggleProfilePanel()"
+                style="display:flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;
+                background:rgba(255,255,255,0.35);
+                border:1px solid rgba(99,102,241,0.25); border-radius:24px;
+                cursor:pointer; transition:all 0.25s;"
+                onmouseover="this.style.borderColor='rgba(99,102,241,0.5)';this.style.background='rgba(255,255,255,0.55)'"
+                onmouseout="this.style.borderColor='rgba(99,102,241,0.25)';this.style.background='rgba(255,255,255,0.35)'">
+                <img id="navProfilePhoto" src="3d_avatar.jpg" alt="Profile"
+                    style="width:34px;height:34px;border-radius:50%;object-fit:cover;display:block;">
+                <div style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;">
+                    <span id="navProfileName" style="font-size:0.85rem;font-weight:700;color:#1e1b4b;">Sign In</span>
+                    <span style="font-size:0.65rem;color:#4f46e5;">My Account</span>
+                </div>
+                <span style="color:#6366f1; font-size:0.75rem; margin-left:2px;">▾</span>
+            </button>
+
+            <!-- ===== PROFILE PANEL ===== -->
+            <div class="notif-panel" id="profilePanel"
+                style="display:none; width:400px; right:0; top:52px; padding:0; overflow:hidden; position:absolute; background:var(--bg-surface, #0d1130);
+                border:1px solid rgba(99,102,241,0.35); box-shadow:0 24px 64px rgba(0,0,0,0.55); z-index:50; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);">
+                <!-- Profile Header -->
+                <div style="background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.15));padding:24px 20px 18px;text-align:center;border-bottom:1px solid rgba(99,102,241,0.2);">
+                    <div style="position:relative;display:inline-block;margin-bottom:12px;">
+                        <img id="profilePanelPhoto" src="3d_avatar.jpg" alt="Profile"
+                            style="width:88px;height:88px;border-radius:50%;border:3px solid var(--brand-primary);object-fit:cover;box-shadow:0 0 28px rgba(99,102,241,0.5);">
+                        <div style="position:absolute;bottom:3px;right:3px;width:20px;height:20px;background:#10b981;border-radius:50%;border:2px solid var(--bg-primary);box-shadow:0 0 8px rgba(16,185,129,0.6);"></div>
+                    </div>
+                    <div id="profilePanelName" style="font-size:1.2rem;font-weight:800;color:var(--text-primary);margin-bottom:2px;letter-spacing:-0.02em;">Loading…</div>
+                    <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:12px;">
+                        <span id="profilePanelEmail" style="font-size:0.8rem;color:var(--text-muted);">—</span>
+                        <button onclick="copyProfileEmail()" title="Copy email"
+                            style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);cursor:pointer;color:var(--text-muted);font-size:0.7rem;padding:2px 7px;border-radius:4px;transition:all 0.2s;"
+                            onmouseover="this.style.color='var(--brand-primary)';this.style.background='rgba(99,102,241,0.2)'"
+                            onmouseout="this.style.color='var(--text-muted)';this.style.background='rgba(99,102,241,0.1)'">📋 Copy</button>
+                    </div>
+                    <div style="display:flex;gap:8px;align-items:center;justify-content:center;flex-wrap:wrap;">
+                        <div id="profileVerifiedBadge" style="display:inline-flex;align-items:center;gap:4px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:5px 12px;">
+                            <span style="font-size:0.75rem;">✅</span>
+                            <span style="font-size:0.75rem;font-weight:700;color:#10b981;">Email Verified</span>
+                        </div>
+                        <div style="display:inline-flex;gap:6px;align-items:center;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);border-radius:20px;padding:5px 14px;">
+                            <span style="font-size:0.72rem;text-transform:uppercase;font-weight:700;color:var(--brand-primary);">⭐ Score</span>
+                            <span id="profilePanelScore" style="font-size:1rem;font-weight:900;color:#fff;">—</span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Scrollable Body -->
+                <div style="max-height:460px;overflow-y:auto;padding:16px 18px;">
+                    <div style="font-size:0.72rem;text-transform:uppercase;font-weight:700;color:var(--brand-primary);letter-spacing:0.08em;margin-bottom:10px;">👤 Profile Details</div>
+                    <div style="display:flex;flex-direction:column;gap:0;margin-bottom:16px;background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.15);border-radius:12px;overflow:hidden;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">
+                            <span style="font-size:0.75rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;"><span>👤</span> Username</span>
+                            <span id="profileDetailName" style="font-size:0.85rem;font-weight:700;color:var(--text-primary);">—</span>
+                        </div>
+                        <div style="height:1px;background:rgba(99,102,241,0.1);margin:0 14px;"></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">
+                            <span style="font-size:0.75rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;"><span>📧</span> Email</span>
+                            <span id="profileDetailEmail" style="font-size:0.78rem;font-weight:600;color:var(--text-primary);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">—</span>
+                        </div>
+                        <div style="height:1px;background:rgba(99,102,241,0.1);margin:0 14px;"></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">
+                            <span style="font-size:0.75rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;"><span>📱</span> Phone</span>
+                            <span id="profileDetailPhone" style="font-size:0.82rem;font-weight:600;color:var(--text-primary);">—</span>
+                        </div>
+                        <div style="height:1px;background:rgba(99,102,241,0.1);margin:0 14px;"></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">
+                            <span style="font-size:0.75rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;"><span>🛡️</span> Status</span>
+                            <span id="profileDetailStatus" style="font-size:0.75rem;font-weight:700;background:rgba(16,185,129,0.15);color:#10b981;border-radius:20px;padding:3px 12px;">Active</span>
+                        </div>
+                        <div style="height:1px;background:rgba(99,102,241,0.1);margin:0 14px;"></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">
+                            <span style="font-size:0.75rem;color:var(--text-muted);display:flex;align-items:center;gap:6px;"><span>🔐</span> Auth Method</span>
+                            <span id="profileDetailVerif" style="font-size:0.75rem;font-weight:700;background:rgba(99,102,241,0.12);color:var(--brand-primary);border-radius:20px;padding:3px 12px;">Email OTP</span>
+                        </div>
+                    </div>
+                    <!-- Platform Usage Bars -->
+                    <div style="font-size:0.72rem;text-transform:uppercase;font-weight:700;color:var(--brand-primary);letter-spacing:0.08em;margin-bottom:10px;">📊 Platform Activity</div>
+                    <div style="margin-bottom:8px;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-secondary);margin-bottom:3px;"><span>Direct Job Point Activity</span><span style="font-weight:600;color:var(--brand-primary);">85%</span></div>
+                        <div style="height:5px;background:var(--bg-accent);border-radius:4px;overflow:hidden;"><div style="width:85%;height:100%;background:linear-gradient(90deg,var(--brand-primary),var(--brand-secondary));border-radius:4px;"></div></div>
+                    </div>
+                    <div style="margin-bottom:8px;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-secondary);margin-bottom:3px;"><span>English Fluency</span><span id="headerFluencyScore" style="font-weight:600;color:#10b981;">72%</span></div>
+                        <div style="height:5px;background:var(--bg-accent);border-radius:4px;overflow:hidden;"><div id="headerFluencyBar" style="width:72%;height:100%;background:linear-gradient(90deg,#10b981,#34d399);border-radius:4px;"></div></div>
+                    </div>
+                    <div style="margin-bottom:14px;">
+                        <div style="display:flex;justify-content:space-between;font-size:0.78rem;color:var(--text-secondary);margin-bottom:3px;"><span>AI Bio Picking Tool</span><span style="font-weight:600;color:#f59e0b;">40%</span></div>
+                        <div style="height:5px;background:var(--bg-accent);border-radius:4px;overflow:hidden;"><div style="width:40%;height:100%;background:linear-gradient(90deg,#f59e0b,#fbbf24);border-radius:4px;"></div></div>
+                    </div>
+                    <!-- Game Scores -->
+                    <div style="font-size:0.72rem;text-transform:uppercase;font-weight:700;color:var(--brand-primary);letter-spacing:0.08em;margin-bottom:10px;">🎮 Game High Scores</div>
+                    <div id="headerGameScores" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;"></div>
+                    
+                    <!-- Freelance & Project Needs -->
+                    <div style="border-top:1px solid rgba(168,85,247,0.2);padding-top:14px;margin-top:4px;">
+                        <div style="font-size:0.72rem;text-transform:uppercase;font-weight:700;color:#c084fc;letter-spacing:0.08em;margin-bottom:8px;">💻 Freelance & Project Development</div>
+                        <div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:10px;line-height:1.6;background:rgba(168,85,247,0.06);border-radius:8px;padding:8px 10px;border-left:3px solid rgba(168,85,247,0.4);">
+                            Need a custom website, web app, or software project built? <strong style="color:var(--text-primary);">Contact us for freelance development.</strong>
+                        </div>
+                        <a href="mailto:tnesh833@gmail.com?subject=Freelance%20Project%20Inquiry" target="_blank"
+                            style="display:block;text-align:center;text-decoration:none;width:100%;padding:9px;background:rgba(168,85,247,0.12);border:1px solid rgba(168,85,247,0.3);border-radius:9px;color:#c084fc;font-size:0.82rem;font-weight:700;cursor:pointer;margin-bottom:10px;transition:all 0.2s;"
+                            onmouseover="this.style.background='rgba(168,85,247,0.22)'"
+                            onmouseout="this.style.background='rgba(168,85,247,0.12)'">
+                            📩 Contact for Freelance Project
+                        </a>
+                    </div>
+                    
+                    <!-- OTP → Password -->
+                    <div style="border-top:1px solid rgba(99,102,241,0.2);padding-top:14px;margin-top:4px;">
+                        <div style="font-size:0.72rem;text-transform:uppercase;font-weight:700;color:var(--brand-primary);letter-spacing:0.08em;margin-bottom:8px;">🔐 Set New Password via Email Code</div>
+                        <div style="font-size:0.76rem;color:var(--text-muted);margin-bottom:10px;line-height:1.6;background:rgba(99,102,241,0.06);border-radius:8px;padding:8px 10px;border-left:3px solid rgba(99,102,241,0.4);">
+                            Request a verification code to your registered email — then use that 6-digit code as your <strong style="color:var(--text-primary);">new login password</strong>.
+                        </div>
+                        <button id="genOtpBtn" onclick="generatePasswordOTP()"
+                            style="width:100%;padding:9px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);border-radius:9px;color:var(--brand-primary);font-size:0.82rem;font-weight:700;cursor:pointer;margin-bottom:10px;transition:all 0.2s;"
+                            onmouseover="this.style.background='rgba(99,102,241,0.22)'"
+                            onmouseout="this.style.background='rgba(99,102,241,0.12)'">
+                            📧 Step 1 — Send Code to My Email
+                        </button>
+                        <div id="otpSentMsg" style="display:none;font-size:0.76rem;color:#10b981;margin-bottom:8px;text-align:center;"></div>
+                        <div style="font-size:0.74rem;color:var(--text-muted);margin-bottom:6px;font-weight:600;">Step 2 — Enter code &amp; confirm as password:</div>
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" id="otpPasswordInput" maxlength="6" placeholder="Enter 6-digit code"
+                                style="flex:1;padding:8px 12px;background:var(--bg-accent);border:1px solid var(--border-primary);border-radius:8px;color:var(--text-primary);font-size:0.85rem;font-weight:600;letter-spacing:2px;text-align:center;outline:none;">
+                            <button onclick="setOTPasPassword()"
+                                style="padding:8px 14px;background:linear-gradient(135deg,var(--brand-primary),var(--brand-secondary));border:none;border-radius:8px;color:#fff;font-size:0.82rem;font-weight:700;cursor:pointer;white-space:nowrap;">
+                                ✅ Set
+                            </button>
+                        </div>
+                        <div id="otpPasswordMsg" style="display:none;font-size:0.76rem;margin-top:8px;text-align:center;padding:6px;border-radius:6px;"></div>
+                    </div>
+                </div>
+                <!-- Logout Footer -->
+                <div style="padding:12px 18px;border-top:1px solid rgba(99,102,241,0.2);background:rgba(0,0,0,0.15);">
+                    <button id="headerLogoutBtn" class="btn btn-sm" onclick="handleLogout()"
+                        style="width:100%;background:linear-gradient(135deg,#f43f5e,#e11d48);color:#fff;font-weight:700;border:none;box-shadow:0 4px 16px rgba(244,63,94,0.3);">🚪 Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+    <div class="container">
+        <!-- STEP 1: EMAIL + NAME + PHOTO (unified sign-in & sign-up) -->
+        <div class="auth-container" id="step1">
+            <img src="3d_avatar.jpg" alt="Logo" class="auth-logo">
+            <h2 class="auth-title">Sign In / Register</h2>
+            <p class="auth-subtitle">New here? Fill in all fields to create your account.<br>Returning user? Just enter your email.</p>
+            
+            <form class="auth-form" id="loginForm">
+                <div id="loginError" class="error-msg hidden"></div>
+
+                <!-- Full Name -->
+                <div>
+                    <label>Full Name <span style="color:var(--text-muted);font-size:0.75rem;">(required for new accounts)</span></label>
+                    <input type="text" id="nameInput" class="input-control" placeholder="John Doe">
+                </div>
+
+
+                <!-- Device Email Lock Notice -->
+                <div id="deviceLockContainer"></div>
+
+                <!-- Email -->
+                <div>
+                    <label>Email Address</label>
+                    <input type="email" id="email" class="input-control" placeholder="john@example.com" required>
+                </div>
+
+                <button type="submit" class="btn" id="loginBtn" style="width: 100%;">Continue with Email →</button>
+            </form>
+            
+            <div class="auth-footer" style="margin-top:16px;">
+                A verification code will be sent to your email
+                <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.08);display:flex;flex-direction:column;gap:6px;align-items:center;">
+                    <span style="font-size:0.75rem;color:var(--text-muted);">Platform Administrator?</span>
+                    <button type="button" onclick="openAdminPanelSecure()" style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.35);color:var(--brand-primary);padding:7px 16px;border-radius:10px;font-size:0.82rem;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:6px;">
+                        <span>🛡️</span> <span>Open Admin Console</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: OTP VERIFICATION -->
+        <div class="auth-container hidden" id="step2">
+            <img src="3d_avatar.jpg" alt="Logo" class="auth-logo">
+            <h2 class="auth-title">Verify Your Login</h2>
+            <p class="auth-subtitle">We've sent a 6-digit code to <strong id="displayEmail"></strong></p>
+            
+            <form class="auth-form" id="otpForm">
+                <div id="otpError" class="error-msg hidden"></div>
+                
+                <div class="otp-inputs" id="otpContainer">
+                    <input type="text" class="otp-input" maxlength="1" required>
+                    <input type="text" class="otp-input" maxlength="1" required>
+                    <input type="text" class="otp-input" maxlength="1" required>
+                    <input type="text" class="otp-input" maxlength="1" required>
+                    <input type="text" class="otp-input" maxlength="1" required>
+                    <input type="text" class="otp-input" maxlength="1" required>
+                </div>
+
+                <button type="submit" class="btn" id="verifyBtn" style="width: 100%;">Log In</button>
+            </form>
+            
+            <div class="auth-footer">
+                Didn't receive code? <a href="#" onclick="location.reload()">Try Again</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="backend.js"></script>
+    <script src="navbar.js"></script>
+    <script>
+        const loginForm = document.getElementById('loginForm');
+        const otpForm = document.getElementById('otpForm');
+        let currentEmail = '';
+        let currentName = '';
+        let currentPhoto = '';
+
+        // Device email lock check on load
+        function checkDeviceEmailLock() {
+            const savedEmail = (localStorage.getItem('rh_registered_email') || '').trim().toLowerCase();
+            const lockContainer = document.getElementById('deviceLockContainer');
+            const emailInput = document.getElementById('email');
+            
+            if (savedEmail && emailInput && lockContainer) {
+                emailInput.value = savedEmail;
+                lockContainer.innerHTML = `
+                    <div style="background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); border-radius: 8px; padding: 10px 12px; font-size: 0.8rem; color: var(--brand-primary); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                        <span>🔒 Device locked to: <strong>${savedEmail}</strong></span>
+                        <button type="button" onclick="clearDeviceLock()" style="background:none; border:none; color:#ef4444; font-size:0.75rem; font-weight:700; cursor:pointer; text-decoration:underline;">Switch Account</button>
+                    </div>
+                `;
+            } else if (lockContainer) {
+                lockContainer.innerHTML = '';
+            }
+        }
+
+        window.clearDeviceLock = function() {
+            if (confirm("Are you sure you want to clear saved email for this device?")) {
+                localStorage.removeItem('rh_registered_email');
+                document.getElementById('email').value = '';
+                checkDeviceEmailLock();
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', checkDeviceEmailLock);
+
+        // Photo URL preview updater
+        function updatePhotoPreview(url) {
+            const img = document.getElementById('photoPreview');
+            if (url && url.startsWith('http')) {
+                img.src = url;
+                img.onerror = function() { this.src = '3d_avatar.jpg'; };
+            } else if (!url) {
+                img.src = '3d_avatar.jpg';
+            }
+        }
+
+        // Auto focus next OTP input
+        const otpInputs = document.querySelectorAll('.otp-input');
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginBtn');
+            const errDiv = document.getElementById('loginError');
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const name = document.getElementById('nameInput').value.trim();
+            const photoEl = document.getElementById('photoUrlInput');
+            const photo = photoEl ? photoEl.value.trim() : '';
+
+            btn.textContent = "Sending Code...";
+            btn.disabled = true;
+            errDiv.classList.add('hidden');
+
+            try {
+                const res = await Backend.Auth.requestLoginOTP(email, name, photo);
+                if (res && res.success) {
+                    currentEmail = email;
+                    currentName = name;
+                    currentPhoto = photo;
+                    document.getElementById('displayEmail').textContent = email;
+                    document.getElementById('step1').classList.add('hidden');
+                    document.getElementById('step2').classList.remove('hidden');
+                    otpInputs[0].focus();
+                } else {
+                    throw new Error(res?.error || "Failed to send code");
+                }
+            } catch (err) {
+                errDiv.textContent = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.textContent = "Continue with Email →";
+                btn.disabled = false;
+            }
+        });
+
+        otpForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('verifyBtn');
+            const errDiv = document.getElementById('otpError');
+            
+            let otp = '';
+            otpInputs.forEach(input => otp += input.value);
+            
+            if (otp.length !== 6) {
+                errDiv.textContent = "Please enter all 6 digits.";
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            btn.textContent = "Verifying...";
+            btn.disabled = true;
+            errDiv.classList.add('hidden');
+
+            try {
+                const res = await Backend.Auth.login(currentEmail, otp);
+                if (res && res.success) {
+                    // Lock registered email to this device
+                    localStorage.setItem('rh_registered_email', currentEmail.toLowerCase());
+
+                    // If user provided a photo, enrich the stored user object
+                    if (currentPhoto) {
+                        try {
+                            const stored = JSON.parse(localStorage.getItem('rh_user') || '{}');
+                            stored.photo_url = currentPhoto;
+                            if (currentName) stored.name = currentName;
+                            localStorage.setItem('rh_user', JSON.stringify(stored));
+                        } catch(_) {}
+                    }
+                    if (currentEmail === 'tnesh833@gmail.com' || (res.user && res.user.role === 'admin')) {
+                        window.location.href = "admin.html";
+                    } else {
+                        window.location.href = "app.html";
+                    }
+
+                } else {
+                    throw new Error(res?.error || "Login failed");
+                }
+            } catch (err) {
+                errDiv.textContent = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.textContent = "Log In";
+                btn.disabled = false;
+            }
+        });
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>

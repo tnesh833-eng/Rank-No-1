@@ -1,0 +1,8 @@
+{
+  "name": "Rank-Holder",
+  "description": "Premium Career & AI Intelligence Platform with Direct Hiring, Bio AI Scanner, and English Communication",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ℜ𝔞𝔫𝔨 ℌ𝔬𝔩𝔡𝔢𝔯 — Customer Signup</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .auth-container {
+            max-width: 420px;
+            margin: 60px auto;
+            padding: 40px 30px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .auth-logo {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            border: 2px solid var(--brand-primary);
+        }
+        .auth-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: var(--text-primary);
+        }
+        .auth-subtitle {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+        .auth-form {
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        .auth-form label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+        }
+        .auth-footer {
+            margin-top: 24px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .auth-footer a {
+            color: var(--brand-primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        .hidden {
+            display: none !important;
+        }
+        .error-msg {
+            color: #ef4444;
+            font-size: 0.85rem;
+            margin-top: -8px;
+            text-align: left;
+        }
+        .success-box {
+            padding: 20px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #10b981;
+            border-radius: 8px;
+            color: #10b981;
+            margin-bottom: 20px;
+        }
+        .otp-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        .otp-input {
+            width: 45px;
+            height: 50px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            background: var(--bg-body);
+            color: var(--text-primary);
+        }
+        .otp-input:focus {
+            outline: none;
+            border-color: var(--brand-primary);
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+        }
+    </style>
+</head>
+<body class="dark-theme">
+<header id="main-navbar" style="
+    position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px; height: 64px;
+    background: rgba(5,8,26,0.82);
+    backdrop-filter: blur(24px) saturate(180%);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    border-bottom: 1px solid rgba(99,102,241,0.22);
+    box-shadow: 0 4px 32px rgba(0,0,0,0.35);
+    transition: background 0.3s;
+">
+    <!-- ── LOGO ── -->
+    <a href="#" class="logo" aria-label="Rank Holder Home" style="
+        display:flex; align-items:center; gap:12px; text-decoration:none; flex-shrink:0;
+    ">
+        <img src="3d_avatar.jpg" alt="Logo Avatar" class="logo-3d-avatar" style="
+            width:38px; height:38px; border-radius:50%;
+            border:2px solid var(--brand-primary);
+            object-fit:cover; box-shadow:0 0 14px rgba(99,102,241,0.5);
+        ">
+        <span style="
+            font-family:'Outfit',sans-serif; font-weight:900; font-size:1.15rem;
+            background:linear-gradient(135deg,#a5b4fc,#818cf8);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+            white-space:nowrap;
+        ">ℜ𝔞𝔫𝔨 ℌ𝔬𝔩𝔡𝔢𝔯</span>
+    </a>
+
+    <!-- ── RIGHT ACTIONS ── -->
+    <div style="display:flex; align-items:center; gap:10px;">
+
+        <!-- 🔔 NOTIFICATIONS BELL -->
+        <div class="notif-wrap" style="position:relative;">
+            <button class="icon-btn" id="notifBtn" onclick="toggleNotifPanel()"
+                aria-label="Job & Internship Notifications"
+                style="position:relative; width:40px; height:40px; border-radius:50%;
+                background:rgba(255,255,255,0.35); border:1px solid rgba(99,102,241,0.25);
+                display:flex; align-items:center; justify-content:center; cursor:pointer;
+                transition:all 0.2s; color:#4f46e5;"
+                onmouseover="this.style.borderColor='rgba(99,102,241,0.5)';this.style.background='rgba(255,255,255,0.55)'"
+                onmouseout="this.style.borderColor='rgba(99,102,241,0.25)';this.style.background='rgba(255,255,255,0.35)'">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                    <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                </svg>
+                <span class="notif-badge" id="notifBadge" style="display:none; position:absolute; top:-2px; right:-2px;
+                    width:10px; height:10px; background:#ff5c5c; border-radius:50%; font-size:0;
+                    border:2px solid var(--bg-primary);"></span>
+            </button>
+            
+            <!-- ===== PROFILE DROPDOWN PANEL ===== -->
+            <div class="notif-panel" id="profilePanel"
+                style="display:none; width:400px; right:0; top:52px; padding:0; overflow:hidden; position:absolute; background:var(--bg-surface, #0d1130);
+                border:1px solid rgba(99,102,241,0.35); box-shadow:0 24px 64px rgba(0,0,0,0.55); z-index:50; backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);">
+                <!-- Profile Header -->
+                <div style="background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.15));padding:24px 20px 18px;text-align:center;border-bottom:1px solid rgba(99,102,241,0.2);"></div>
+            </div>
+
+            <div class="notif-panel" id="notifPanel" style="width:340px; padding:0; overflow:hidden; top:52px; display:none; position:absolute; right:0; background:var(--bg-surface, #0d1130); border:1px solid rgba(99,102,241,0.3); border-radius:14px; box-shadow:0 12px 32px rgba(0,0,0,0.5); z-index:50;">
+                <div class="notif-panel-header" style="padding:14px 16px 10px; border-bottom:1px solid rgba(99,102,241,0.15);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                        <span style="font-weight:800;font-size:0.95rem;">🔔 Career Alerts</span>
+                        <button class="chip" style="margin:0; cursor:pointer; font-size:0.72rem; padding:3px 10px;" onclick="clearNotifications()">Clear all</button>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <button id="notifFilterAll" onclick="filterNotifs('all')" style="flex:1;padding:5px;border-radius:7px;font-size:0.72rem;font-weight:700;cursor:pointer;background:rgba(99,102,241,0.18);border:1px solid rgba(99,102,241,0.3);color:var(--brand-primary);transition:all 0.2s;">All</button>
+                        <button id="notifFilterJob" onclick="filterNotifs('job')" style="flex:1;padding:5px;border-radius:7px;font-size:0.72rem;font-weight:700;cursor:pointer;background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.1);color:var(--text-muted);transition:all 0.2s;">💼 Jobs</button>
+                        <button id="notifFilterIntern" onclick="filterNotifs('internship')" style="flex:1;padding:5px;border-radius:7px;font-size:0.72rem;font-weight:700;cursor:pointer;background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.1);color:var(--text-muted);transition:all 0.2s;">🎓 Internship</button>
+                    </div>
+                </div>
+                <div id="notifList" style="max-height:360px;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;"></div>
+            </div>
+        </div>
+
+        <!-- 🌓 THEME TOGGLE -->
+        <button class="pill-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle Theme"
+            style="height:40px; padding:0 14px; border-radius:20px; border:1px solid rgba(99,102,241,0.25);
+            background:rgba(255,255,255,0.35); font-size:0.85rem; font-weight:600;
+            display:flex; align-items:center; gap:6px; cursor:pointer; transition:all 0.2s; color:#4f46e5;"
+            onmouseover="this.style.borderColor='rgba(99,102,241,0.5)';this.style.background='rgba(255,255,255,0.55)'"
+            onmouseout="this.style.borderColor='rgba(99,102,241,0.25)';this.style.background='rgba(255,255,255,0.35)'">
+            <span id="themeIcon">☀️</span><span id="themeLabel">Light</span>
+        </button>
+
+        <!-- 🛡️ ADMIN PANEL BUTTON (Safety & Security: tnesh833@gmail.com strictly) -->
+        <button class="pill-btn" id="adminNavBtn" onclick="openAdminPanelSecure()" aria-label="Admin Panel"
+            style="height:40px; padding:0 16px; border-radius:20px; border:1px solid rgba(99,102,241,0.4);
+            background:linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2)); font-size:0.85rem; font-weight:700;
+            display:flex; align-items:center; gap:6px; cursor:pointer; transition:all 0.2s; color:var(--text-primary, #fff);"
+            onmouseover="this.style.borderColor='rgba(99,102,241,0.7)';this.style.boxShadow='0 0 16px rgba(99,102,241,0.4)'"
+            onmouseout="this.style.borderColor='rgba(99,102,241,0.4)';this.style.boxShadow='none'">
+            <span>🛡️</span> <span>Admin Panel</span>
+        </button>
+
+        <!-- 🌐 TOOLS HUB -->
+        <button class="pill-btn primary" onclick="openQuickAccess()"
+            style="height:40px; padding:0 18px; border-radius:20px;
+            background:linear-gradient(135deg, #7c5cff, #4f7dff);
+            color:#fff; font-weight:700; border:none; font-size:0.85rem;
+            box-shadow:0 4px 18px rgba(99,102,241,0.4); transition:all 0.25s; white-space:nowrap; cursor:pointer;"
+            onmouseover="this.style.boxShadow='0 6px 24px rgba(99,102,241,0.6)';this.style.transform='translateY(-1px)'"
+            onmouseout="this.style.boxShadow='0 4px 18px rgba(99,102,241,0.4)';this.style.transform='translateY(0)'">
+            🌐 Tools Hub
+        </button>
+
+        <!-- 👤 USER PROFILE / SIGN IN PILL -->
+        <div id="authUserDisplayWrap" class="notif-wrap" style="display:block; position:relative;">
+            <button id="authUserDisplay" onclick="toggleProfilePanel()"
+                style="display:flex;align-items:center;gap:10px;padding:6px 14px 6px 6px;
+                background:rgba(255,255,255,0.35);
+                border:1px solid rgba(99,102,241,0.25); border-radius:24px;
+                cursor:pointer; transition:all 0.25s;"
+                onmouseover="this.style.borderColor='rgba(99,102,241,0.5)';this.style.background='rgba(255,255,255,0.55)'"
+                onmouseout="this.style.borderColor='rgba(99,102,241,0.25)';this.style.background='rgba(255,255,255,0.35)'">
+                <img id="navProfilePhoto" src="3d_avatar.jpg" alt="Profile"
+                    style="width:34px;height:34px;border-radius:50%;object-fit:cover;display:block;">
+                <div style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;">
+                    <span id="navProfileName" style="font-size:0.85rem;font-weight:700;color:#1e1b4b;">Sign In</span>
+                    <span style="font-size:0.65rem;color:#4f46e5;">My Account</span>
+                </div>
+                <span style="color:#6366f1; font-size:0.75rem; margin-left:2px;">▾</span>
+            </button>
+        </div>
+    </div>
+</header>
+
+
+
+    <div class="container">
+        <div class="auth-container" id="step1">
+            <img src="3d_avatar.jpg" alt="Logo" class="auth-logo">
+            <h2 class="auth-title">Create an Account</h2>
+            <p class="auth-subtitle">Join Rank-Holder Premium Platform</p>
+            
+            <form class="auth-form" id="signupForm">
+                <div id="signupError" class="error-msg hidden"></div>
+                <!-- Device Lock Notice -->
+                <div id="deviceLockContainer"></div>
+                <div>
+                    <label>Full Name</label>
+                    <input type="text" id="name" class="input-control" placeholder="John Doe" required>
+                </div>
+                <div>
+                    <label>Email Address</label>
+                    <input type="email" id="email" class="input-control" placeholder="john@example.com" required>
+                </div>
+                <div>
+                    <label>Password</label>
+                    <input type="password" id="password" class="input-control" placeholder="Minimum 6 characters" minlength="6" required>
+                </div>
+                <button type="submit" class="btn" id="signupBtn" style="width: 100%;">Continue</button>
+            </form>
+            
+            <div class="auth-footer">
+                Already have an account? <a href="login.html">Log In</a>
+            </div>
+        </div>
+
+        <div class="auth-container hidden" id="step2">
+            <img src="3d_avatar.jpg" alt="Logo" class="auth-logo">
+            <h2 class="auth-title">Verify Your Email</h2>
+            <p class="auth-subtitle">We've sent a 6-digit code to <strong id="displayEmail"></strong></p>
+            
+            <form class="auth-form" id="otpForm">
+                <div id="otpError" class="error-msg hidden"></div>
+                
+                <div class="otp-inputs" id="otpContainer">
+                    <input type="text" class="otp-input" maxlength="1" required>
+                    <input type="text" class="otp-input" maxlength="1" required>
+                    <input type="text" class="otp-input" maxlength="1" required>
+                    <input type="text" class="otp-input" maxlength="1" required>
+                    <input type="text" class="otp-input" maxlength="1" required>
+                    <input type="text" class="otp-input" maxlength="1" required>
+                </div>
+
+                <button type="submit" class="btn" id="verifyBtn" style="width: 100%;">Verify & Complete Setup</button>
+            </form>
+            
+            <div class="auth-footer">
+                Didn't receive code? <a href="#" onclick="location.reload()">Try Again</a>
+            </div>
+        </div>
+
+        <div class="auth-container hidden" id="step3">
+            <img src="3d_avatar.jpg" alt="Logo" class="auth-logo" style="border-color: #10b981;">
+            <h2 class="auth-title">Account Verified &amp; Active!</h2>
+            <div class="success-box">
+                ✅ Your email has been verified successfully.
+            </div>
+            <p class="auth-subtitle" style="margin-bottom: 20px;">
+                Welcome to Rank-Holder! Your account is fully active. Click below to enter the platform.
+            </p>
+            <a href="app.html" class="btn" style="width: 100%; display: block; text-align: center; text-decoration:none; padding:14px; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; font-weight:700; border-radius:10px;">Launch Application →</a>
+        </div>
+    </div>
+
+    <script src="backend.js"></script>
+    <script src="navbar.js"></script>
+    <script>
+        const signupForm = document.getElementById('signupForm');
+        const otpForm = document.getElementById('otpForm');
+        let currentEmail = '';
+
+        function checkDeviceEmailLock() {
+            // Device email lock banner removed — do not display registered email on signup page
+        }
+        document.addEventListener('DOMContentLoaded', checkDeviceEmailLock);
+
+        // Auto focus next OTP input
+        const otpInputs = document.querySelectorAll('.otp-input');
+        otpInputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (e.target.value.length === 1 && index < otpInputs.length - 1) {
+                    otpInputs[index + 1].focus();
+                }
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) {
+                    otpInputs[index - 1].focus();
+                }
+            });
+        });
+
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('signupBtn');
+            const errDiv = document.getElementById('signupError');
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value.trim().toLowerCase();
+            const password = document.getElementById('password').value;
+
+            btn.textContent = "Sending Code...";
+            btn.disabled = true;
+            errDiv.classList.add('hidden');
+
+            try {
+                const res = await Backend.Auth.register(name, "", email, password);
+                if (res && res.success) {
+                    currentEmail = email;
+                    document.getElementById('displayEmail').textContent = email;
+                    document.getElementById('step1').classList.add('hidden');
+                    document.getElementById('step2').classList.remove('hidden');
+                    otpInputs[0].focus();
+                } else {
+                    const msg = res?.error || "Registration failed";
+                    // If already registered, show a friendlier message + redirect
+                    if (msg.toLowerCase().includes("already registered")) {
+                        errDiv.innerHTML = `⚠️ This email is already registered. <a href="login.html" style="color:var(--brand-primary);font-weight:700;">Log In instead →</a>`;
+                    } else {
+                        errDiv.textContent = msg;
+                    }
+                    errDiv.classList.remove('hidden');
+                }
+            } catch (err) {
+                errDiv.textContent = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.textContent = "Continue";
+                btn.disabled = false;
+            }
+        });
+
+        otpForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('verifyBtn');
+            const errDiv = document.getElementById('otpError');
+            
+            let otp = '';
+            otpInputs.forEach(input => otp += input.value);
+            
+            if (otp.length !== 6) {
+                errDiv.textContent = "Please enter all 6 digits.";
+                errDiv.classList.remove('hidden');
+                return;
+            }
+
+            btn.textContent = "Verifying...";
+            btn.disabled = true;
+            errDiv.classList.add('hidden');
+
+            try {
+                const res = await Backend.Auth.verifyRegister(currentEmail, otp);
+                if (res && res.success) {
+                    localStorage.setItem('rh_registered_email', currentEmail.toLowerCase());
+                    if (res.token) localStorage.setItem('rh_auth_token', res.token);
+                    if (res.user) localStorage.setItem('rh_user', JSON.stringify(res.user));
+                    document.getElementById('step2').classList.add('hidden');
+                    document.getElementById('step3').classList.remove('hidden');
+                } else {
+                    throw new Error(res?.error || "Verification failed");
+                }
+            } catch (err) {
+                errDiv.textContent = err.message;
+                errDiv.classList.remove('hidden');
+            } finally {
+                btn.textContent = "Verify & Complete Setup";
+                btn.disabled = false;
+            }
+        });
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
