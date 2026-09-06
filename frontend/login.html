@@ -376,25 +376,39 @@
         <div class="auth-container hidden" id="step2">
             <img src="3d_avatar.jpg" alt="Logo" class="auth-logo">
             <h2 class="auth-title">Verify Your Login</h2>
-            <p class="auth-subtitle">We've sent a 6-digit code to <strong id="displayEmail"></strong></p>
+            <p class="auth-subtitle">📱 6-digit code sent to <strong id="displayEmail" style="color:var(--brand-primary);"></strong></p>
             
+            <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); border-radius: 8px; padding: 10px 14px; font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4; text-align: left;">
+                <div>✉️ <strong>Open Gmail:</strong> Code sent to your inbox (valid for 10 mins).</div>
+                <div style="margin-top: 5px; color: #fbbf24; font-size: 0.78rem;">
+                    ⚠️ <strong>Can't find it?</strong> Please check your Gmail <strong>Spam / Junk</strong> folder or <strong>Promotions</strong> tab!
+                </div>
+            </div>
+
             <form class="auth-form" id="otpForm">
                 <div id="otpError" class="error-msg hidden"></div>
                 
                 <div class="otp-inputs" id="otpContainer">
-                    <input type="text" class="otp-input" maxlength="1" required>
-                    <input type="text" class="otp-input" maxlength="1" required>
-                    <input type="text" class="otp-input" maxlength="1" required>
-                    <input type="text" class="otp-input" maxlength="1" required>
-                    <input type="text" class="otp-input" maxlength="1" required>
-                    <input type="text" class="otp-input" maxlength="1" required>
+                    <input type="text" class="otp-input" maxlength="1" required inputmode="numeric" autocomplete="one-time-code">
+                    <input type="text" class="otp-input" maxlength="1" required inputmode="numeric">
+                    <input type="text" class="otp-input" maxlength="1" required inputmode="numeric">
+                    <input type="text" class="otp-input" maxlength="1" required inputmode="numeric">
+                    <input type="text" class="otp-input" maxlength="1" required inputmode="numeric">
+                    <input type="text" class="otp-input" maxlength="1" required inputmode="numeric">
                 </div>
 
-                <button type="submit" class="btn" id="verifyBtn" style="width: 100%;">Log In</button>
+                <button type="submit" class="btn" id="verifyBtn" style="width: 100%;">Verify & Enter Platform →</button>
             </form>
             
-            <div class="auth-footer">
-                Didn't receive code? <a href="#" onclick="location.reload()">Try Again</a>
+            <div class="auth-footer" style="display:flex;flex-direction:column;gap:10px;align-items:center;">
+                <div style="font-size:0.85rem;color:var(--text-secondary);">
+                    Didn't receive code? 
+                    <button type="button" id="resendBtn" onclick="handleResendOTP()" style="background:none;border:none;color:var(--brand-primary);font-weight:700;cursor:pointer;text-decoration:underline;padding:0;">Resend Code</button>
+                    <span id="resendTimer" style="font-size:0.8rem;color:var(--text-muted);display:none;"></span>
+                </div>
+                <div>
+                    <button type="button" onclick="goBackToStep1()" style="background:none;border:none;color:var(--text-muted);font-size:0.8rem;cursor:pointer;">← Change email address</button>
+                </div>
             </div>
         </div>
     </div>
@@ -415,11 +429,11 @@
             const emailInput = document.getElementById('email');
             
             if (savedEmail && emailInput && lockContainer) {
-                emailInput.value = savedEmail;
+                if (!emailInput.value) emailInput.value = savedEmail;
                 lockContainer.innerHTML = `
-                    <div style="background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); border-radius: 8px; padding: 10px 12px; font-size: 0.8rem; color: var(--brand-primary); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-                        <span>🔒 Device locked to: <strong>${savedEmail}</strong></span>
-                        <button type="button" onclick="clearDeviceLock()" style="background:none; border:none; color:#ef4444; font-size:0.75rem; font-weight:700; cursor:pointer; text-decoration:underline;">Switch Account</button>
+                    <div style="background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                        <span>👤 Saved on device: <strong>${savedEmail}</strong></span>
+                        <button type="button" onclick="clearDeviceLock()" style="background:none; border:none; color:var(--brand-primary); font-size:0.75rem; font-weight:700; cursor:pointer; text-decoration:underline;">Use Different Email</button>
                     </div>
                 `;
             } else if (lockContainer) {
@@ -428,11 +442,65 @@
         }
 
         window.clearDeviceLock = function() {
-            if (confirm("Are you sure you want to clear saved email for this device?")) {
-                localStorage.removeItem('rh_registered_email');
-                document.getElementById('email').value = '';
-                checkDeviceEmailLock();
+            localStorage.removeItem('rh_registered_email');
+            const emailInput = document.getElementById('email');
+            if (emailInput) {
+                emailInput.value = '';
+                emailInput.focus();
             }
+            checkDeviceEmailLock();
+        };
+
+        window.goBackToStep1 = function() {
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step1').classList.remove('hidden');
+            const errDiv = document.getElementById('otpError');
+            if (errDiv) errDiv.classList.add('hidden');
+        };
+
+        let resendCooldown = 0;
+        let resendInterval = null;
+        window.handleResendOTP = async function() {
+            if (resendCooldown > 0 || !currentEmail) return;
+            const resendBtn = document.getElementById('resendBtn');
+            const resendTimer = document.getElementById('resendTimer');
+            const otpErr = document.getElementById('otpError');
+            
+            resendBtn.disabled = true;
+            resendBtn.style.opacity = '0.5';
+            
+            try {
+                const res = await Backend.Auth.resendOTP(currentEmail, 'login');
+                if (res && res.success) {
+                    otpErr.textContent = `✅ New code sent to ${currentEmail}. Check your Gmail on phone or computer (including Spam).`;
+                    otpErr.style.color = '#10b981';
+                    otpErr.classList.remove('hidden');
+                    setTimeout(() => { otpErr.style.color = ''; }, 4000);
+                } else {
+                    throw new Error(res?.error || "Failed to resend code");
+                }
+            } catch (err) {
+                otpErr.textContent = err.message;
+                otpErr.style.color = '#ef4444';
+                otpErr.classList.remove('hidden');
+            }
+            
+            resendCooldown = 30;
+            resendTimer.style.display = 'inline';
+            resendTimer.textContent = ` (${resendCooldown}s)`;
+            
+            if (resendInterval) clearInterval(resendInterval);
+            resendInterval = setInterval(() => {
+                resendCooldown--;
+                if (resendCooldown <= 0) {
+                    clearInterval(resendInterval);
+                    resendBtn.disabled = false;
+                    resendBtn.style.opacity = '1';
+                    resendTimer.style.display = 'none';
+                } else {
+                    resendTimer.textContent = ` (${resendCooldown}s)`;
+                }
+            }, 1000);
         };
 
         document.addEventListener('DOMContentLoaded', checkDeviceEmailLock);

@@ -71,6 +71,11 @@ const Backend = {
             return await Backend.request("/auth/verify-register", "POST", { email, otp });
         },
 
+        // RESEND OTP: Re-send a fresh 6-digit code to the user's email
+        resendOTP: async function(email, purpose = "verification") {
+            return await Backend.request("/auth/resend-otp", "POST", { email, purpose });
+        },
+
         // Update user profile info (phone, enrolled courses)
         updateProfile: async function(phone, courses) {
             return await Backend.request("/auth/profile", "POST", { phone, courses });

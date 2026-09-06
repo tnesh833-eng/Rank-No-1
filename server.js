@@ -378,14 +378,14 @@ const SMTP_EMAIL = (process.env.SMTP_EMAIL || "").trim();
 const SMTP_PASSWORD = (process.env.SMTP_PASSWORD || "").replace(/\s/g, "").trim();
 const SMTP_HOST = process.env.SMTP_HOST || "smtp.gmail.com";
 const SMTP_PORT_NUM = parseInt(process.env.SMTP_PORT || "587");
-const OTP_EXPIRY_MS = 2 * 60 * 1000;
+const OTP_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes expiry (generous window for mobile email access)
 
 let transporter = null;
 if (SMTP_EMAIL && SMTP_PASSWORD) {
     transporter = nodemailer.createTransport({
         host: SMTP_HOST,
         port: SMTP_PORT_NUM,
-        secure: false,
+        secure: SMTP_PORT_NUM === 465,
         auth: { user: SMTP_EMAIL, pass: SMTP_PASSWORD },
         tls: { rejectUnauthorized: false }
     });
@@ -399,14 +399,65 @@ function generateOTP() {
 }
 
 async function sendOTPEmail(toEmail, otpCode, purpose = "verification") {
-    const subj = `Rank-Holder Verification Code: ${otpCode}`;
+    const cleanEmail = String(toEmail || "").trim().toLowerCase();
+    // Clear subject with code first for instant lock-screen & notification display
+    const subj = `Rank-Holder Code: ${otpCode} (Verification)`;
+    
+    // Plain-text version for maximum deliverability & quick phone notification preview
+    const plainText = `Your Rank-Holder verification code is: ${otpCode}\n\nUse this 6-digit code to complete your ${purpose}.\nThis code is valid for 10 minutes.\n\nIf you did not request this, you can safely ignore this email.\n\n— Rank-Holder Team`;
+    
+    // Mobile-optimized, high-contrast HTML email template
     const html = `
-        <div style="font-family: Arial, sans-serif; padding: 20px; background: #0d1130; color: #f0f4ff; border-radius: 10px;">
-            <h2>Rank-Holder Verification</h2>
-            <p>Your ${purpose} code is:</p>
-            <h1 style="font-size: 36px; letter-spacing: 5px; color: #818cf8;">${otpCode}</h1>
-            <p>This code expires in <strong>2 minutes</strong>. Please use it immediately.</p>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rank-Holder Verification Code</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #05081a; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #05081a; padding: 24px 10px;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 480px; background-color: #0d122b; border: 1px solid rgba(99,102,241,0.3); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5);">
+                    <tr>
+                        <td align="center" style="padding: 28px 24px 16px; background: linear-gradient(180deg, rgba(99,102,241,0.18) 0%, transparent 100%);">
+                            <div style="display: inline-block; width: 46px; height: 46px; line-height: 46px; border-radius: 14px; background: linear-gradient(135deg, #6366f1, #8b5cf6); font-size: 22px; text-align: center; color: #ffffff; box-shadow: 0 4px 16px rgba(99,102,241,0.4);">🛡️</div>
+                            <h1 style="margin: 12px 0 4px; font-size: 22px; font-weight: 800; color: #ffffff; letter-spacing: 0.5px;">Rank-Holder</h1>
+                            <p style="margin: 0; font-size: 12px; font-weight: 600; color: #a5b4fc; text-transform: uppercase; letter-spacing: 1px;">Security Verification</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px 28px 24px; text-align: center;">
+                            <p style="margin: 0 0 10px; font-size: 15px; color: #e2e8f0; line-height: 1.5;">
+                                Your verification code for <strong style="color: #818cf8;">${purpose}</strong> is:
+                            </p>
+                            <!-- High-contrast OTP Display Box -->
+                            <div style="margin: 16px 0; padding: 18px; background-color: #070a1a; border: 2px dashed rgba(99,102,241,0.5); border-radius: 12px; text-align: center;">
+                                <span style="font-family: 'Courier New', Courier, monospace, sans-serif; font-size: 38px; font-weight: 800; letter-spacing: 8px; color: #38bdf8; display: inline-block;">${otpCode}</span>
+                            </div>
+                            <p style="margin: 0 0 16px; font-size: 13px; color: #94a3b8; line-height: 1.5;">
+                                ⏱️ This code will expire in <strong style="color: #f1f5f9;">10 minutes</strong>.<br>Enter this code on your phone or computer to continue.
+                            </p>
+                            <div style="padding: 12px 14px; background: rgba(99,102,241,0.08); border-radius: 8px; border-left: 3px solid #6366f1; text-align: left;">
+                                <p style="margin: 0; font-size: 12px; color: #cbd5e1; line-height: 1.4;">
+                                    🔒 <strong>Inbox Tip:</strong> If not found in your Primary inbox, please check your <strong>Spam / Junk</strong> folder or <strong>Promotions</strong> tab.
+                                </p>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="padding: 14px 20px 20px; border-top: 1px solid rgba(255,255,255,0.06); font-size: 11px; color: #64748b;">
+                            <p style="margin: 0 0 4px;">Sent to <span style="color: #94a3b8;">${cleanEmail}</span></p>
+                            <p style="margin: 0;">Rank-Holder Career &amp; AI Intelligence Platform</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
     `;
 
     try {
@@ -415,15 +466,28 @@ async function sendOTPEmail(toEmail, otpCode, purpose = "verification") {
 
     if (transporter) {
         try {
-            await transporter.sendMail({ from: `"Rank-Holder" <${SMTP_EMAIL}>`, to: toEmail, subject: subj, html });
-            console.log(`[SMTP ✅] OTP sent → ${toEmail}`);
+            await transporter.sendMail({
+                from: `"Rank-Holder Verification" <${SMTP_EMAIL}>`,
+                to: cleanEmail,
+                replyTo: SMTP_EMAIL,
+                priority: "high",
+                headers: {
+                    'X-Priority': '1',
+                    'X-MSMail-Priority': 'High',
+                    'Importance': 'High'
+                },
+                subject: subj,
+                text: plainText,
+                html: html
+            });
+            console.log(`[SMTP ✅] OTP sent to phone/email → ${cleanEmail}`);
             return true;
         } catch (err) {
-            console.error(`[SMTP ❌] Failed to send email to ${toEmail}:`, err.message);
+            console.error(`[SMTP ❌] Failed to send email to ${cleanEmail}:`, err.message);
         }
     }
     console.log(`\n══════════════════════════════════════════════════`);
-    console.log(`  📧 OTP for ${toEmail}: ${otpCode}`);
+    console.log(`  📧 OTP for ${cleanEmail}: ${otpCode}`);
     console.log(`══════════════════════════════════════════════════\n`);
     return true;
 }
@@ -467,7 +531,7 @@ app.post("/api/auth/verify-register", (req, res) => {
 
     const now = new Date().toISOString();
     const record = dbGet(
-        "SELECT * FROM otp_codes WHERE email=? AND otp_code=? AND purpose='register' AND is_used=0 AND expires_at>? ORDER BY id DESC LIMIT 1",
+        "SELECT * FROM otp_codes WHERE email=? AND otp_code=? AND is_used=0 AND expires_at>? ORDER BY id DESC LIMIT 1",
         [e, o, now]
     );
     if (!record) return res.status(400).json({ error: "Invalid or expired code. Please try again." });
@@ -489,6 +553,23 @@ app.post("/api/auth/verify-register", (req, res) => {
         token,
         user: { id: user.id, name: user.name, email: user.email, phone: user.phone, status: user.status, is_verified: user.is_verified }
     });
+});
+
+app.post("/api/auth/resend-otp", async (req, res) => {
+    const { email = "", purpose = "verification" } = req.body || {};
+    const e = email.trim().toLowerCase();
+    if (!e || !e.includes("@")) {
+        return res.status(400).json({ error: "A valid email address is required." });
+    }
+
+    dbRun("UPDATE otp_codes SET is_used = 1 WHERE email = ? AND is_used = 0", [e]);
+
+    const otp = generateOTP();
+    const exp = new Date(Date.now() + OTP_EXPIRY_MS).toISOString();
+    dbRun("INSERT INTO otp_codes (email, otp_code, purpose, expires_at) VALUES (?, ?, ?, ?)", [e, otp, purpose, exp]);
+
+    await sendOTPEmail(e, otp, purpose);
+    return res.json({ success: true, message: `New verification code sent to ${e}.` });
 });
 
 app.post("/api/auth/login-otp-request", async (req, res) => {
@@ -556,11 +637,12 @@ const handleLogin = async (req, res) => {
     if (!authenticated && o) {
         const now = new Date().toISOString();
         const record = dbGet(
-            "SELECT * FROM otp_codes WHERE email=? AND otp_code=? AND purpose='login' AND is_used=0 AND expires_at>? ORDER BY id DESC LIMIT 1",
+            "SELECT * FROM otp_codes WHERE email=? AND otp_code=? AND is_used=0 AND expires_at>? ORDER BY id DESC LIMIT 1",
             [e, o, now]
         );
         if (!record) return res.status(400).json({ error: "Invalid or expired verification code. Please try again." });
         dbRun("UPDATE otp_codes SET is_used = 1 WHERE id = ?", [record.id]);
+        dbRun("UPDATE users SET is_verified = 1, status = 'APPROVED' WHERE email = ?", [e]);
         authenticated = true;
     }
 
